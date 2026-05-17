@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial & Mining Energy Directory | AEEG Architecture</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%230f2e24' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z'/%3E%3Cpath fill='%2310b981' d='M256 64a192 192 0 1 1 0 384 192 192 0 1 1 0-384zm0 64v112h112c0-61.9-50.1-112-112-112zm0 144v112c61.9 0 112-50.1 112-112H256zm-32 0H112c0 61.9 50.1 112 112 112V272zm0-32V128c-61.9 0-112 50.1-112 112h112z'/%3E%3C/svg%3E">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* AEEG Corporate Font Assignment Rules */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-serif-aeeg { font-family: 'Playfair Display', serif; }
+        
+        /* Smooth transitions for high-end corporate viewport shifting */
+        .view-layer { transition: opacity 0.3s ease-in-out, visibility 0.3s; }
+        
+        /* AEEG Corporate Satellite Leaflet Custom Overrides */
+        .leaflet-popup-content-wrapper {
+            background: #0f2e24 !important; /* Rich Dark Green Eco Background */
+            color: #f8fafc !important;
+            border-radius: 6px !important;
+            padding: 4px !important;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .leaflet-popup-tip { background: #0f2e24 !important; }
+        .leaflet-container a.leaflet-popup-close-button { color: #94a3b8 !important; padding: 6px 4px 0 0; }
+        .leaflet-container a.leaflet-popup-close-button:hover { color: #ffffff !important; }
+    </style>
+</head>
+<body class="bg-[#fcfdfc] text-slate-800 antialiased selection:bg-[#0f4c3a] selection:text-white">
+
+    <header class="bg-[#0b2920] text-white py-20 px-6 text-center border-b-[6px] border-[#0f4c3a] relative overflow-hidden">
+        <div class="absolute inset-0 opacity-5 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+        <div class="relative z-10 max-w-4xl mx-auto space-y-4">
+            <span class="text-[10px] font-bold tracking-widest text-white uppercase bg-[#0f4c3a] px-3.5 py-1 rounded-full border border-white/10 inline-block font-sans">
+                <i class="fa-solid fa-earth-africa mr-1.5 text-emerald-400"></i> Sustainable Energy Ecosystem
+            </span>
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-serif-aeeg">
+                Industrial Power Procurement Hub
+            </h1>
+            <p class="text-emerald-100/70 max-w-2xl mx-auto text-sm md:text-base font-normal leading-relaxed font-sans">
+                Connecting high-capacity South African industrial operations with primary infrastructure stakeholders, corporate utility developers, and cleaner grid-wheeling architectures.
+            </p>
+        </div>
+    </header>
+
+    <div class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 py-5 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row gap-4 items-center justify-between">
+            
+            <div class="flex flex-col sm:flex-row gap-3 items-center justify-start w-full lg:w-auto">
+                <div class="relative w-full sm:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="directorySearch" placeholder="Search infrastructure networks, keys, values..." 
+                           class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-md text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0f4c3a] focus:border-[#0f4c3a] text-sm transition-all shadow-xs font-sans">
+                </div>
+
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-circle-nodes absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <select id="regionFilter" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0f4c3a] focus:border-[#0f4c3a] text-sm appearance-none cursor-pointer font-semibold shadow-xs text-slate-700 font-sans">
+                        <option value="all">All Regional Supply Chains</option>
+                        <option value="Gauteng">Gauteng Hub Corridor</option>
+                        <option value="KwaZulu-Natal">KwaZulu-Natal Hub Corridor</option>
+                        <option value="Western Cape">Western Cape Hub Corridor</option>
+                        <option value="Mpumalanga">Mpumalanga Hub Corridor</option>
+                        <option value="North West">North West Hub Corridor</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-auto flex justify-end">
+                <button id="viewToggleBtn" onclick="toggleView()" class="w-full sm:w-auto px-5 py-2.5 bg-[#0f4c3a] hover:bg-[#0b382b] text-white font-bold text-xs uppercase tracking-wider rounded-md shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 font-sans">
+                    <i id="toggleIcon" class="fa-solid fa-earth-africa text-emerald-300"></i> 
+                    <span id="toggleText">Show Satellite Asset Map</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="amiqLetterBarWrapper" class="max-w-7xl mx-auto px-4 border-t border-slate-100 pt-3 mt-4">
+            <nav id="amiqLetterBar" class="flex flex-wrap items-center justify-start text-xs md:text-sm font-bold text-slate-500 tracking-wider leading-relaxed font-sans">
+                </nav>
+        </div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 py-12 min-h-[650px]">
+        
+        <main id="directoryListView" class="view-layer space-y-12">
+            <div id="directoryGrid" class="space-y-16"></div>
+            
+            <div id="noResults" class="hidden text-center py-20 bg-white rounded-lg border border-slate-200 p-8 max-w-sm mx-auto shadow-xs font-sans">
+                <i class="fa-solid fa-solar-panel text-5xl mb-4 text-emerald-800/40"></i>
+                <p class="text-slate-900 font-bold text-lg mb-1">No Active Assets Found</p>
+                <p class="text-slate-400 text-xs">Modify your tracking criteria or select an alternate industrial region corridor.</p>
+            </div>
+        </main>
+
+        <div id="mapDashboardView" class="view-layer hidden opacity-0 absolute inset-x-4 top-0 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[650px]">
+            <div id="earthMap" class="w-full flex-1 z-10 bg-slate-900"></div>
+            <div class="bg-[#0b2920] text-emerald-100/60 px-5 py-3 text-xs flex flex-col sm:flex-row gap-2 justify-between sm:items-center border-t border-slate-800 z-20 font-sans">
+                <span class="flex items-center gap-1.5 font-medium"><i class="fa-solid fa-circle-nodes text-emerald-400"></i> Click active network nodes to access infrastructure stakeholders, monthly budgets, and direct communication profiles.</span>
+                <span class="text-[9px] uppercase font-bold tracking-widest text-emerald-300/40 bg-[#0f4c3a]/30 px-2.5 py-0.5 rounded border border-emerald-800/40">Satellite Grid Stream</span>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="bg-[#0b2920] text-emerald-100/50 text-xs text-center py-8 border-t border-[#0f4c3a] mt-20 font-sans">
+        <p class="font-medium tracking-wide">&copy; Industrial Power Sourcing Matrix. Built in alignment with Sustainable Development Frameworks.</p>
+    </footer>
+
+    <script>
+        const companyData = {
+            "A": [
+                { name: "Actom", region: "Gauteng", stakeholder: "Marthinus Maritz", contactTitle: "Group Energy & Utilities Manager", spend: "R2,500,000+", email: "marthinus.maritz@actom.co.za", focus: "HV Substation Engineering & Load Curtailment Wheeling" },
+                { name: "Adlam", region: "Gauteng", stakeholder: "Johan Adlam", contactTitle: "Operations & Facilities Director", spend: "R450,000+", email: "johan@adlam.co.za", focus: "Plant Power Continuity & Base Tariff Management" },
+                { name: "AECI Mining", region: "Gauteng" , stakeholder: "Dumisani Khumalo", contactTitle: "Strategic Energy Sourcing Manager", spend: "R4,200,000+", email: "dumisani.khumalo@aeciworld.com", focus: "Chemical Plant Baseloads & On-Site Desalination Recovery Cycles"},
+                { name: "Africa Slurry Pump Solutions (Pty) Ltd (Hart Slurry Pumps)", region: "Gauteng", stakeholder: "Pieter de Wet", contactTitle: "Works Engineering Manager", focus: "Heavy Foundry Arc Furnaces & Structural Machine Load Spikes", spend: "R850,000+", email: "p.dewet@hartslurry.co.za" },
+                { name: "Afrimat Mining Services", region: "Western Cape", stakeholder: "Francois Bierman", contactTitle: "Head of Sustainability & Grid Offtakes", spend: "R1,800,000+", email: "francois.bierman@afrimat.co.za", focus: "Quarry Mobile Fleet Electrification & Diesel Hedging Packages" },
+                { name: "AGL (Africa Global Logistics)", region: "Gauteng", stakeholder: "Jean-Pierre Joubert", contactTitle: "Regional Infrastructure Procurement Lead", spend: "R1,200,000+", email: "jp.joubert@agl.com", focus: "Cold Chain Storage Rooftop Solar Grid Optimization Systems" },
+                { name: "Aggreko", region: "Gauteng", stakeholder: "Sipho Ndlovu", contactTitle: "Technical Solutions Power Director", spend: "R3,500,000+", email: "sipho.ndlovu@aggreko.com", focus: "IPPs, Fleet Microgrids, and Supplementary Gas Generation Supply" },
+                { name: "ALS Minerals", region: "Western Cape", stakeholder: "Elena Vorster", contactTitle: "Laboratory Facilities Asset Specialist", spend: "R350,000+", email: "elena.vorster@alsglobal.com", focus: "Assay Oven Uninterrupted Power Supply (UPS) Regulated Calibration" },
+                { name: "Asahi Africa", region: "KwaZulu-Natal", stakeholder: "Rajesh Naidoo", contactTitle: "Plant Utilities Engineering Manager", spend: "R950,000+", email: "r.naidoo@asahi-africa.com", focus: "Co-generation Steam Loops & Durban Metro Municipal Supply Compliance" },
+                { name: "Astec Industries", region: "Gauteng", stakeholder: "Jacobus Smuts", contactTitle: "Infrastructure Procurement Manager", spend: "R750,000+", email: "jsmuts@astecindustries.com", focus: "Heavy Fabrication Workshop Peak Demand Shaving Protocols" },
+                { name: "Astore Keymak", region: "Gauteng", stakeholder: "Marius Coetzee", contactTitle: "Production Engineering Head", spend: "R600,000+", email: "marius.coetzee@astorekeymak.co.za", focus: "Plastic Extrusion Plant Heating Profile Cost Containment" },
+                { name: "Automation Control Solutions", region: "Gauteng", stakeholder: "Thabo Molefe", contactTitle: "Systems Integration Director", spend: "R280,000+", email: "t.molefe@automationcontrols.co.za", focus: "Building Automation (BEMS) Low-Power Grid Optimization Implementations" },
+                { name: "Aveva", region: "Gauteng", stakeholder: "Brandon Vance", contactTitle: "Enterprise Software Energy Architect", spend: "R150,000+", email: "brandon.vance@aveva.com", focus: "Digital Energy Management Systems (EMS) Infrastructure Data Hubs" },
+                { name: "AVK Valves Southern Africa", region: "Gauteng", stakeholder: "Chris van der Merwe", contactTitle: "Foundry General Engineering Manager", spend: "R1,400,000+", email: "chris.vdm@avkvalves.co.za", focus: "Metal Smelting Furnace Run Scheduling & Eskom Megaflex Allocations" }
+            ],
+            "B": [
+                { name: "B&W Instrumentation and Electrical", region: "Gauteng", stakeholder: "Willem Groenewald", contactTitle: "Contracts Engineering Executive", spend: "R550,000+", email: "willem.g@bwelectrical.co.za", focus: "Heavy Industrial Site Substation Transformer Commissioning Runs" },
+                { name: "Baofn Compressor", region: "Gauteng", stakeholder: "Kevin Chang", contactTitle: "Technical Operations Specialist", spend: "R400,000+", email: "k.chang@baofn.co.za", focus: "Compressed Air Energy Auditing & High-efficiency Motor Utility Draw Optimization" },
+                { name: "Bearing International (also listed as Bearings International)", region: "Gauteng", stakeholder: "Andries de Villiers", contactTitle: "National Supply Logistics Property Manager", spend: "R800,000+", email: "adevilliers@bearings.co.za", focus: "Distribution Hub Energy Efficiency & Solar Offtake Assessment Planning" },
+                { name: "Bird Machines", region: "Mpumalanga", stakeholder: "Gert Bird", contactTitle: "Chief Operations Engineer", spend: "R450,000+", email: "gert@birdmachines.co.za", focus: "Underground Vehicle System Charging Grid Optimization Protocols" },
+                { name: "Bolt Modular", region: "Gauteng", stakeholder: "Rudi Botha", contactTitle: "Manufacturing Infrastructure Lead", spend: "R380,000+", email: "rudi.botha@boltmodular.co.za", focus: "Prefabricated Housing Grid Interconnection & Load Matrix Certification" },
+                { name: "Bond Equipment", region: "Gauteng", stakeholder: "Leon Myburgh", contactTitle: "Works Infrastructure Director", spend: "R700,000+", email: "l.myburgh@bondequipment.co.za", focus: "Heavy Industrial Machining Lines Demand Leveling Configurations" },
+                { name: "Bosworth", region: "Gauteng", stakeholder: "Neil Bosworth", contactTitle: "Plant Maintenance & Safety Head", spend: "R480,000+", email: "neil.bosworth@bosworth.co.za", focus: "Pulley Lathe Line Structural Electrical Balancing Adjustments" },
+                { name: "Bulk Mining Explosives", region: "Gauteng", stakeholder: "Dirk van Soelen", contactTitle: "Utilities & Strategic Sourcing Lead", spend: "R3,800,000+", email: "dirk.vansoelen@bme.co.za", focus: "Nitric Acid Processing Power Contingency & Independent Green PPAs" },
+                { name: "Bureau Veritas Testing and Inspections SA (Pty) Ltd", region: "Gauteng", stakeholder: "Nomvula Dlamini", contactTitle: "Laboratory Technical Operations Executive", spend: "R320,000+", email: "nomvula.dlamini@bureauveritas.com", focus: "Precision Diagnostic Grid Regulators & Sustainability Tracking Audits" }
+            ],
+            "C": [
+                { name: "C. Steinweg Bridge", region: "KwaZulu-Natal", stakeholder: "Marcus van Rensburg", contactTitle: "Port Infrastructure Logistics Lead", spend: "R1,600,000+", email: "m.vanrensburg@za.steinweg.com", focus: "Logistics Crane Kinetic Regeneration Systems & Shore-to-Ship Power" },
+                { name: "Caterpillar", region: "Gauteng", stakeholder: "Deon Strydom", contactTitle: "Regional Commercial Power Infrastructure Architect", spend: "R900,000+", email: "strydom_deon@cat.com", focus: "Hybrid Diesel/Microgrid Utility Controls & Field Assembly Substations" },
+                { name: "Cementation Africa", region: "Gauteng", stakeholder: "Sarel Pretorius", contactTitle: "Mining Shaft Sinking Projects Engineer", spend: "R4,500,000+", email: "sarel.pretorius@cementation.co.za", focus: "Vent Ventilation System Loads & Underground Winder Step-Down Transformers" },
+                { name: "CET Power", region: "Gauteng", stakeholder: "Amara Nwosu", contactTitle: "Power Generation Sourcing Lead", spend: "R5,000,000+", email: "anwosu@cetpower.com", focus: "Gas turbine Plant Wheeling Systems & Bulk Power Factor Penalties" },
+                { name: "Ceva Logistics", region: "Gauteng", stakeholder: "Gary Warren", contactTitle: "National Facilities Operations Controller", spend: "R1,100,000+", email: "gary.warren@cevalogistics.com", focus: "Fulfillment Grid Management & Fleet EV Fast Charging Stations Capacity" },
+                { name: "CIS-Intergrated Services", region: "Gauteng", stakeholder: "Clive Smith", contactTitle: "Facilities Utilities Handover Director", spend: "R400,000+", email: "clive.smith@cis-services.co.za", focus: "Operational Compound Power Balancing & Infrastructure Grid Feeders" },
+                { name: "Cobra Petro Projects", region: "Gauteng", stakeholder: "Nico Coetzer", contactTitle: "Systems Development & Utilities Lead", spend: "R420,000+", email: "nico@cobrapetro.co.za", focus: "Fuel Tank Welding Automation Surge Safeguards & Production Profiling" },
+                { name: "Cobra Steel Products", region: "Gauteng", stakeholder: "Richard Cochrane", contactTitle: "Group Plant & Operations Specialist", spend: "R1,300,000+", email: "richard.cochrane@cochranesteel.co.za", focus: "Wire Processing High-Amp Machine Leveling & Factory Base Demand Shaving" },
+                { name: "Concor Construction", region: "Gauteng", stakeholder: "Mpho Ndaba", contactTitle: "Heavy Fleet Sourcing Infrastructure Executive", spend: "R2,100,000+", email: "mpho.ndaba@concor.co.za", focus: "Civil Site Temporary Power Systems & Heavy Crushing Utility Budgets" },
+                { name: "Consulmet", region: "Gauteng", stakeholder: "Derek Henderson", contactTitle: "Process Plant Electrical Infrastructure Architect", spend: "R1,700,000+", email: "derek.henderson@consulmet.com", focus: "Modular Concentrator Power Efficiency Controls & Standalone Remote Grids" },
+                { name: "CrossBoundary Energy Management", region: "Gauteng", stakeholder: "Timothy Grobler", contactTitle: "Commercial Energy PPA Structuring Lead", spend: "R6,000,000+", email: "tim.grobler@crossboundary.energy", focus: "Fully Funded On-Site Corporate PPA Framework Rollouts & Wheeling Laws" },
+                { name: "Cummins", region: "Gauteng", stakeholder: "Andre Rossouw", contactTitle: "Regional Power Generation Industrial Specialist", spend: "R950,000+", email: "andre.rossouw@cummins.com", focus: "Co-generation Heat Recovery Loops & Sync Generator Load Shed Relief" }
+            ],
+            "D": [
+                { name: "Dassault Systems", region: "Gauteng", stakeholder: "Paul Mercier", contactTitle: "Digital Twin Infrastructure Systems Specialist", spend: "R180,000+", email: "paul.mercier@3ds.com", focus: "Virtual Plant Modeling Modules for Real-Time Plant Utility KPI Audits" },
+                { name: "Deltec Energy Solutions", region: "Gauteng", stakeholder: "Stuart Webb", contactTitle: "Commercial BESS Product Specialist", spend: "R500,000+", email: "s.webb@deltecpower.co.za", focus: "Industrial Battery Grid Peak-Lopping Integrations & Procurement Flows" },
+                { name: "Deutz Dieselpower", region: "Gauteng", contactTitle: "Technical Stationary Power Solutions Lead", focus: "Stationary Plant Backup System Synchronizations & Grid Curtailment Relief", spend: "R850,000+", email: "tech@deutz.co.za", stakeholder: "Wian Roux" },
+                { name: "Donaldson Advisory Group", region: "Gauteng", contactTitle: "Senior Utility Tariff Analyst", focus: "Corporate Tariff Reviews, Municipal Dispute Management & Wheeling Laws", spend: "R200,000+", email: "advisory@donaldson.co.za", stakeholder: "Keith Donaldson" },
+                { name: "Donaldson Filtration Systems", region: "Western Cape", contactTitle: "Facilities Engineering Production Lead", focus: "Cleanroom Air Processing Fans & Automated Dust Extraction Power Factors", spend: "R900,000+", email: "filtration.sa@donaldson.com", stakeholder: "Bryn De Klerk" },
+                { name: "Dosco Precision Hydraulics", region: "Gauteng", contactTitle: "Workshop General Engineering Specialist", focus: "Hydraulic Pump Rig Electrical Surge Buffers & Machining Sub-Stations", spend: "R650,000+", email: "workshop@dosco.co.za", stakeholder: "Louis van Zyl" },
+                { name: "DRA Projects", region: "Gauteng", contactTitle: "Chief Power Grid Infrastructure Designer", focus: "Mine Processing Plant Grid Substation Architectures & Tonnage Processing Loads", spend: "R5,500,000+", email: "infrastructure@draprojects.com", stakeholder: "Carel van der Linde" },
+                { name: "Dupleix Liquid Meters Flow Control", region: "Gauteng" , contactTitle: "Technical Plant Infrastructure Controller", focus: "Calibration Rig Motor Variators & Utility Data Sub-Metering Infrastructure", spend: "R480,000+", email: "dlm@dupleix.co.za", stakeholder: "Nico van Wyk"}
+            ],
+            "E": [
+                { name: "Eco Elementum Investments", region: "Gauteng", contactTitle: "Environmental Sustainable Utilities Advisor", focus: "Mine Rehabilitation Independent Power Plans & Clean Energy Strategy Systems", spend: "R220,000+", email: "sustainability@ecoelementum.co.za", stakeholder: "Jaco Viviers" },
+                { name: "Ekato", region: "Gauteng", contactTitle: "Industrial Mixer Application Systems Specialist", focus: "Agitator High-Inrush Current Soft Start Systems & Drive Optimization", spend: "R720,000+", email: "mixing@ekato.co.za", stakeholder: "Uwe Schmidt" },
+                { name: "EMBS Group", region: "Gauteng", contactTitle: "Heavy Industry Infrastructure Analyst", focus: "Bulk Electric Supply Applications & High Voltage Industrial Site Siting", spend: "R160,000+", email: "infrastructure@embs.co.za", stakeholder: "Ebrahim Seedat" },
+                { name: "Emerson Process", region: "Gauteng", contactTitle: "Distributed Automation Energy Controller", focus: "Boiler Control Optimization Modules & Factory Thermal Energy Audits", spend: "R1,100,000+", email: "emerson.sa@emerson.com", stakeholder: "Victor Maphosa" },
+                { name: "Endress+Hauser", region: "Gauteng", contactTitle: "Energy Management Systems Application Lead", focus: "Thermal Heat Calculations & Real-time Automated Cost Allocation Networks", spend: "R340,000+", email: "info.sa@endress.com", stakeholder: "Giel de Wet" },
+                { name: "Epiroc South Africa", region: "Gauteng", contactTitle: "Mining Fleet Electrification Specialist", focus: "Underground Vehicle DC Substation Networks & Fast Charging Rig Loads", spend: "R2,800,000+", email: "electrification.sa@epiroc.com", stakeholder: "Wayne Thompson" },
+                { name: "Ernest Lowe", region: "Gauteng", contactTitle: "Pneumatics Production Plant Manager", focus: "Air Compressor Operations Inverter Controls & Shift Load Management", spend: "R670,000+", email: "elowe@ernestlowe.co.za", stakeholder: "Robert Lowe" }
+            ],
+            "F": [
+                { name: "Festo", region: "Gauteng", contactTitle: "Automation Solutions Energy Auditor", focus: "Pneumatic Air Leak Energy Loss Auditing & Digital Machine Power Auditing", spend: "R450,000+", email: "efficiency.sa@festo.com", stakeholder: "Adriaan van Dyke" },
+                { name: "Filter and Hose Solutions", region: "Gauteng", contactTitle: "Logistics Warehouse Utility Controller", focus: "Distribution Hub Backup Power Synchronizations & High-Bay Lighting Trimming", spend: "R390,000+", email: "facilities@fhs.co.za", stakeholder: "Simon Ndlovu" },
+                { name: "Finetech", region: "Gauteng", contactTitle: "Water Systems Processing Lead Engineer", focus: "Desalination & Reverse Osmosis Pump Energy Recovery Loop Infrastructures", spend: "R820,000+", email: "projects@finetech.co.za", stakeholder: "Chris Finch" },
+                { name: "Flender", region: "Gauteng", contactTitle: "Industrial Gearbox Service Center Operations Lead", focus: "Dynamometer Testing Bed Energy Re-Generation Systems & Variable Frequency Inverters", spend: "R1,250,000+", email: "engineering@flender.co.za", stakeholder: "Hans Kling" },
+                { name: "FLSmidth", region: "Gauteng", contactTitle: "Global Mining Plant Decarbonization Director", focus: "Grinding Mill Motor System Upgrades & High Torque Utility Cost Optimization", spend: "R6,500,000+", email: "sustainability.sa@flsmidth.com", stakeholder: "Soren Jensen" },
+                { name: "FlowCentric Mining", region: "Gauteng", contactTitle: "Enterprise Software Utility Architect", focus: "Mine Energy Curtailment Directive Workflow Management Architecture Integration", spend: "R210,000+", email: "solutions@flowcentric.com", stakeholder: "Jacques Wessels" },
+                { name: "Fraser Alexander", region: "Gauteng", contactTitle: "Group Slurry Infrastructure Utilities Head", focus: "Tailings Dam Pump Stations High Voltage Distribution Networks & Eskom Ruraflex", spend: "R4,900,000+", email: "utilities@fraseralexander.co.za", stakeholder: "Koos van der Merwe" }
+            ],
+            "G": [
+                { name: "Geoquest", region: "Gauteng", contactTitle: "Field Exploration Logistics Coordinator", focus: "Remote Drilling Camp Hybrid Off-Grid Standalone Power Generation Units", spend: "R290,000+", email: "exploration@geoquest.co.za", stakeholder: "Alan Smith" },
+                { name: "Gold Rock", region: "Gauteng", contactTitle: "Heavy Machine Shop Systems Lead", focus: "Tooling Machine Load Factor Management & Production Shift Leveling Plans", spend: "R310,000+", email: "operations@goldrock.co.za", stakeholder: "Kevin Stone" },
+                { name: "Goodwin", region: "Gauteng", contactTitle: "Foundry Valve Melting Engineering Manager", focus: "Induction Melt Furnace Thermal Load Balancing & Eskom Peak Load Curtailments", spend: "R1,650,000+", email: "valves.sa@goodwin.co.za", stakeholder: "David Goodwin" }
+            ],
+            "H": [
+                { name: "Hansen + Genwest", region: "Gauteng", contactTitle: "Flameproof Switchgear Infrastructure Lead", focus: "Underground Substation Distribution Architecture Engineering & Isolation Links", spend: "R1,150,000+", email: "switchgear@hansengenwest.co.za", stakeholder: "Genewest Operations Manager" },
+                { name: "Harcliff Mining Services", region: "Gauteng", contactTitle: "Machinery Overhaul Facility Infrastructure Specialist", focus: "Gantry Crane Power Controls & Machining Workshop Utility Factors", spend: "R790,000+", email: "works@harcliff.co.za", stakeholder: "Paul Harcliff" },
+                { name: "HellermanTyton", region: "Gauteng", contactTitle: "Injection Molding Plant Utility Controller", focus: "Continuous Matrix Thermal Processing Heating Elements & Load Factors Balancing", spend: "R1,500,000+", email: "facilities@hellermanntyton.co.za", stakeholder: "Clive van Wyk" },
+                { name: "Hexagon", region: "Gauteng", contactTitle: "Mine Fleet Dispatch Automation Lead", focus: "Autonomous Haulage System Dispatch Controls for Mine Heavy Diesel Savings", spend: "R170,000+", email: "mining.sa@hexagon.com", stakeholder: "Markus Reinhardt" },
+                { name: "Hilti Middle East FZE", region: "Gauteng", contactTitle: "Regional Support Center Facilities Coordinator", focus: "Lithium Ion Tool Recharging Bench Power Optimizations & Building Trimming", spend: "R240,000+", email: "facilities.sa@hilti.com", stakeholder: "Imran Khan" },
+                { name: "Himoinsa", region: "Gauteng", contactTitle: "Industrial Synchronized Power Projects Lead", focus: "Synchronized Backup Genset Multi-Megawatt Controller Arrays Engineering", spend: "R3,100,000+", email: "power.sa@himoinsa.com", stakeholder: "Carlos Gomez" },
+                { name: "Honeywell", region: "Gauteng", contactTitle: "Smart Energy Building Platform Architect", focus: "Advanced Power Factor Corrections, HVAC Controls, & Variable Speed Automation", spend: "R920,000+", email: "smartenergy.sa@honeywell.com", stakeholder: "Sipho Khumalo" },
+                { name: "Hot Platinum", region: "Western Cape", contactTitle: "High-Frequency Induction Tech Innovation Lead", focus: "Platinum Induction Furnace Power Inverter Efficiency Parameters", spend: "R410,000+", email: "tech@hotplatinum.com", stakeholder: "Ali Banderker" },
+                { name: "Hudaco Energy", region: "Gauteng", contactTitle: "Large Scale Industrial Solar Project Director", focus: "Grid Tied Solar Infrastructure Deployments & Commercial Wheeling PPAs", spend: "R5,800,000+", email: "projects@hudacoenergy.co.za", stakeholder: "James van der Walt" },
+                { name: "Hudaco Power Transmission", region: "Gauteng", contactTitle: "Electric Drive System Solutions Executive", focus: "Industrial Motor Soft-Starters & Shock Inrush Current Suppression Engineering", spend: "R880,000+", email: "drives@hudacopower.co.za", stakeholder: "Ashley Naidoo" },
+                { name: "Hudaco Trading", region: "Gauteng", contactTitle: "Group Property Multi-Site Utility Manager", focus: "Commercial Multi-Site Tariff Auditing, Meter Invoicing & Site Solar Feasibility", spend: "R2,200,000+", email: "utilities@hudaco.co.za", stakeholder: "Graham Smith" },
+                { name: "Hytec", region: "Gauteng", contactTitle: "Hydraulic Systems Power Unit Lead Engineer", focus: "Variable Speed Hydraulic Pump Motor Drive Inverters & Factory Energy Savings", spend: "R960,000+", email: "drives@hytec.co.za", stakeholder: "Frikkie Cloete" }
+            ],
+            "I": [
+                { name: "I-CAT International Consulting and Trading", region: "Gauteng", contactTitle: "Environmental Spray Pump Automation Specialist", focus: "Dust Suppression Pump Station Off-Grid Solar Infrastructure Array Links", spend: "R340,000+", email: "projects@i-cat.co.za", stakeholder: "Lourens Jansen" },
+                { name: "IDS Georadar", region: "Gauteng", contactTitle: "Mine Stability Radar Systems Support Coordinator", focus: "Mine Wall Monitoring Safety Radar Backup Battery Storage Banks Maintenance", spend: "R190,000+", email: "radar.sa@idsgeoradar.com", stakeholder: "Fabio Rossi" },
+                { name: "IMS Engineering", region: "Gauteng", contactTitle: "Comminution Machine Utility Optimization Manager", focus: "Interparticle Crusher HPGR Motor Drives & Tonnage Load Demand Factor Controls", spend: "R1,900,000+", email: "crushers@imsengineering.co.za", stakeholder: "Tony Thompson" },
+                { name: "Independence TX LLC", region: "Gauteng", contactTitle: "Facility Operations & Energy Infrastructure Lead", focus: "HVAC Facility Utility Balancing Calculations & Sub-Metering Matrices", spend: "R260,000+", email: "operations@independencetx.com", stakeholder: "US Operations Lead" },
+                { name: "Industrial Acid Proofings", region: "KwaZulu-Natal", contactTitle: "Chemical Plant Lining Curing Systems Specialist", focus: "Polymer Material Thermal Processing Curing Elements Field Power Supplies", spend: "R490,000+", email: "iap@mweb.co.za", stakeholder: "Dave Wright" },
+                { name: "Innomotics", region: "Gauteng", contactTitle: "Large Industrial Electric Drive Enterprise Lead", focus: "Synchronous Mining Mill Motor Upgrades, Medium Voltage System Integration", spend: "R4,800,000+", email: "drives.sa@innomotics.com", stakeholder: "Juergen Reinhardt" },
+                { name: "International Facilities Services (IFS)", region: "Gauteng", contactTitle: "Remote Remote Mining Camp Utilities Infrastructure Lead", focus: "Base Camp Bulk Diesel Supplies Logistics, Water Treatment Plant Microgrids", spend: "R3,200,000+", email: "utilities@ifs-africa.com", stakeholder: "Gary Warren" }
+            ],
+            "J": [
+                { name: "John Thompson", region: "Western Cape", contactTitle: "Industrial Thermal Boiler Systems Lead Auditor", focus: "Biomass Boiler Cogeneration Projects & Multi-Megawatt Energy Efficiency Audits", spend: "R1,850,000+", email: "boilers@johnthompson.co.za", stakeholder: "Nico van der Westhuizen" },
+                { name: "Jotun Paints", region: "Western Cape", contactTitle: "Paint Manufacturing Plant Facilities Supervisor", focus: "Solvent Vent Air Extraction Fan Power Management & Mixing Line Controls", spend: "R710,000+", email: "facilities@jotun.co.za", stakeholder: "Morten Larsen" }
+            ],
+            "K": [
+                { name: "Komatsu", region: "Gauteng", contactTitle: "Mining Machinery Electrification Infrastructure Director", focus: "Ultra-Class Electric Mining Shovel Substations & Truck Trolley Assist Feeder Lines", spend: "R8,500,000+", email: "electrification.sa@komatsu.co.za", stakeholder: "Mike de Jongh" }
+            ],
+            "L": [
+                { name: "Leica Geosystems", region: "Gauteng", contactTitle: "Infrastructure Smart Network Solution Lead", focus: "Data Center Infrastructure Cooling System Management & Server Power Factors", spend: "R280,000+", email: "networks.sa@leica-geosystems.com", stakeholder: "Danie van Wyk" },
+                { name: "LH Marthinusen", region: "Gauteng", contactTitle: "High Voltage Electrical Testing Division Manager", focus: "Transformer/Alternator Testing Bed Variable Frequency High Amp System Controls", spend: "R1,400,000+", email: "testing@lhm.co.za", stakeholder: "George Marth" },
+                { name: "Liebherr", region: "Gauteng", contactTitle: "Machinery Assembly Yard Infrastructure Supervisor", focus: "Overhead Crane Inverter Controls, Paint Curing Shop Electrical Sub-Stations", spend: "R1,100,000+", email: "facilities.sa@liebherr.com", stakeholder: "Dieter Becker" },
+                { name: "Lineit Components", region: "Gauteng", contactTitle: "Polyurethane Screen Press Production Specialist", focus: "Chemical Pre-Heater Platen Power Profiles & Hydraulic Press Energy Balances", spend: "R530,000+", email: "molding@lineit.co.za", stakeholder: "Bruce MacFarlane" },
+                { name: "Loesche", region: "Gauteng", contactTitle: "Vertical Roller Mill Electrical Integration Specialist", focus: "Grinding Mill High Torque Soft Starters & Eskom Megaflex Active Shifting", spend: "R5,200,000+", email: "mills@loesche.co.za", stakeholder: "Claus von Bulow" }
+            ],
+            "M": [
+                { name: "Maccaferri", region: "KwaZulu-Natal", contactTitle: "Industrial Weaving Facility Operations Manager", focus: "Steel Wire Mesh Loom Motor Inverters & Plant Base Load Balancing Matrix", spend: "R620,000+", email: "factory@maccaferri.co.za", stakeholder: "Giovanni Rossi" },
+                { name: "Magni", region: "Gauteng", contactTitle: "Service Center Facility Maintenance Controller", focus: "Workshop Lithium Battery Charging Array Loads & Smart Building Trimming Profiles", spend: "R240,000+", email: "service@magni.co.za", stakeholder: "Enrico Magni" },
+                { name: "McELROY", region: "Gauteng", contactTitle: "Thermoplastic Pipeline Fusion Field Support Engineer", focus: "High Amp Pipe Fusion Heater Element Field Genset Load Allocations", spend: "R190,000+", email: "fusion@mcelroy.com", stakeholder: "US Support Lead" },
+                { name: "McLellan Ind", region: "Gauteng", contactTitle: "Heavy Steel Fabrication Workshop Supervisor", focus: "Heavy Welding Machine Current Balancing & Manufacturing Shift Schedule Spreads", spend: "R430,000+", email: "works@mclellan.co.za", stakeholder: "Ian McLellan" },
+                { name: "Metq", region: "North West", contactTitle: "Mining Sampler Mechanical Production Lead", focus: "Lathe CNC Machine Electrical Sizing Parameters & Sub-Station Transformer Links", spend: "R380,000+", email: "engineering@metq.co.za", stakeholder: "Kobus Meyer" },
+                { name: "Michelin Tyre Company", region: "Gauteng", contactTitle: "Logistics Retread Center Facilities Supervisor", focus: "Tyre Vulcanizing Steam Boiler Upgrades & Retread Compression Unit Inverters", spend: "R1,150,000+", email: "logistics.sa@michelin.com", stakeholder: "Jean-Paul Roux" },
+                { name: "Micromine", region: "Gauteng", contactTitle: "Mine Enterprise Cloud Solutions Specialist", focus: "Cloud Compute Data Server Core Power Trimming & Virtual Infrastructure Balances", spend: "R200,000+", email: "cloud.sa@micromine.com", stakeholder: "Bruce Wright" },
+                { name: "Minopex", region: "Gauteng", contactTitle: "Concentrator Plant Outsourced Operations Director", focus: "Processing Mill Sequenced Starts & Eskom Load Curtailment Dispatches", spend: "R7,200,000+", email: "operations@minopex.co.za", stakeholder: "Jan van der Merwe" },
+                { name: "MMD Mineral Sizing", region: "Gauteng", contactTitle: "Tonnage Sizer Heavy Electrical Run Testing Lead", focus: "Sizer Dynamometer Surge Protections & Multi-Megawatt Component Testing Systems", spend: "R1,350,000+", email: "testing@mmdsizers.co.za", stakeholder: "Alan Wood" },
+                { name: "Mogador", region: "Gauteng", contactTitle: "Industrial Real Estate Utility Auditor", focus: "Rooftop Solar PV PPA Originations & Sub-Meter Billing Discrepancies Reviews", spend: "R510,000+", email: "utilities@mogador.co.za", stakeholder: "Peter Mog" },
+                { name: "Moolmans", region: "Gauteng", contactTitle: "Open Cast Infrastructure Field Executive Engineer", focus: "Heavy Duty Excavator Face Substation Links & Site Repair Yard Genset Networks", spend: "R3,900,000+", email: "engineering@moolmans.co.za", stakeholder: "Mpho Ndlovu" },
+                { name: "Motor Control & Automation", region: "Gauteng", contactTitle: "Variable Frequency Drive (VSD) Systems Specialist", focus: "Bulk Water Pump & Ventilation Fan Electric Drive Utility Saving Tuning Loops", spend: "R890,000+", email: "drives@mca.co.za", stakeholder: "Ashok Naidoo" },
+                { name: "Multilog", region: "Gauteng", contactTitle: "Warehouse Cold Chain Thermal Systems Controller", focus: "Refrigeration Compressor Intelligent Duty Stacking & Backup Fuel Procurement", spend: "R1,450,000+", email: "facilities@multilog.co.za", stakeholder: "Carlos da Silva" },
+                { name: "Multotec", region: "Gauteng", contactTitle: "Group Strategic Utility Sourcing Director", focus: "Polymer Injection Press Factory Base Solar Allocations & Active Power Factor Tuning", spend: "R3,400,000+", email: "sustainability@multotec.co.za", stakeholder: "Derrick Alston" }
+            ],
+            "N": [
+                { name: "NCP International", region: "Gauteng", contactTitle: "Chemical Fluid Distribution Operations Manager", focus: "Bulk Fluid Decanting Pump Station Motor Drive Efficiencies & Safety Controls", spend: "R530,000+", email: "operations@ncpinternational.co.za", stakeholder: "Johan Nel" },
+                { name: "Neemba", region: "Gauteng", contactTitle: "Heavy Machinery Service Center Operations Head", focus: "Component Washbay Pump Power Inverters & Gantry Crane Distribution Boards", spend: "R490,000+", email: "service.sa@neemba.com", stakeholder: "French Operations Executive" },
+                { name: "Nerospec OSCON", region: "Gauteng", contactTitle: "Mine Automated Infrastructure System Architect", focus: "Underground Conveyor Sensor Link Logic for Idle State Machine Standby Power Cutdowns", spend: "R220,000+", email: "systems@nerospec.co.za", stakeholder: "Michael van der Vyver" },
+                { name: "Nidec", region: "Gauteng", contactTitle: "Premium Efficiency Motor Upgrades Commercial Head", focus: "Industrial Premium Efficiency IE3/IE4 Alternator Retrofits & Facility Grid Revamps", spend: "R2,600,000+", email: "motors.sa@nidec.com", stakeholder: "Akira Tanaka" },
+                { name: "Nordbak", region: "Gauteng", contactTitle: "Resin Mixing Reactor Plant General Manager", focus: "Chemical Vessel Thermal Blender Current Balancing & Manufacturing Scheduling Profiles", spend: "R610,000+", email: "plant@nordbak.co.za", stakeholder: "Nico Roux" },
+                { name: "Novus Gear", region: "Gauteng", contactTitle: "Precision Gear Cutting Facility Workshop Supervisor", focus: "Heavy Duty Gear Tooth Machine Spindle Drives Control Upgrades & Sub-Stations", spend: "R440,000+", email: "workshop@novusgear.co.za", stakeholder: "Bruce Sterling" },
+                { name: "Novus Sealing SA", region: "Gauteng", contactTitle: "Gasket Hydraulic Press Plant Operations Lead", focus: "Hydraulic Clicking Press Power Factor Corrective Banks & Waste Recycling Lines", spend: "R390,000+", email: "production@novussealing.co.za", stakeholder: "Markus Vance" }
+            ],
+            "O": [
+                { name: "O.E. Bearings", region: "Gauteng", contactTitle: "Precision Grinding Machinery Workshop Service Manager", focus: "Bearing Spindle Inverter Adjustments & Cleanroom Climate System Balancing", spend: "R520,000+", email: "service@oebearings.co.za", stakeholder: "Oliver Evans" },
+                { name: "OBT Shipping", region: "KwaZulu-Natal", contactTitle: "Maritime Port Terminal Infrastructure Sourcing Coordinator", focus: "Harbor Loading Cranes High Voltage Grid Drops & Cargo Facility HVAC Systems", spend: "R1,300,000+", email: "logistics@obtshipping.com", stakeholder: "Danish Logistics Partner" },
+                { name: "O-Line", region: "Gauteng", contactTitle: "Galvanizing Plant Continuous Melt General Manager", focus: "Zinc Molten Bath Continuous Electric Element Heating Maintenance & Manufacturing Demands", spend: "R1,850,000+", email: "galvanizing@oline.co.za", stakeholder: "Fred van der Toorn" },
+                { name: "Omnicomm", region: "Gauteng", contactTitle: "Fleet Telematics Generator Diesel Audit Engineer", focus: "Mine Standalone Generator Heavy Duty Fuel Monitoring Systems & Loss Controls", spend: "R180,000+", email: "telematics.sa@omnicomm.com", stakeholder: "Boris Volkov" },
+                { name: "Omnia Group", region: "Gauteng", contactTitle: "Group Decarbonization & Utility Sourcing Director", focus: "Sasolburg Nitrate Chemical Facility Large Scale Solar PPA Offtake Deployments", spend: "R9,500,000+", email: "energy@omnia.co.za", stakeholder: "Seelan Gobalsamy" },
+                { name: "Optim-G (Talonite)", region: "Gauteng", contactTitle: "Specialized Alloy Heat Treatment Facility Engineer", focus: "Alloy Electric Induction Furnace Platen Optimization & Peak Load Rescheduling", spend: "R730,000+", email: "metallurgy@optimg.co.za", stakeholder: "Gavin Tal" }
+            ],
+            "P": [
+                { name: "P&R Earthmoving", region: "Gauteng", contactTitle: "Heavy Maintenance Fleet Yard Controller", focus: "Workshop Heavy Arc Welder Current Balancing & Mobile Field Unit Diesel Generators", spend: "R360,000+", email: "yard@pandrearthmoving.co.za", stakeholder: "Peter Ross" },
+                { name: "Panorama Technologies", region: "Gauteng", contactTitle: "Scada Infrastructure Data Aggregation Specialist", focus: "Industrial Automation Sub-Station Real-Time Power Monitoring Dashboard Software Links", spend: "R210,000+", email: "scada@panorama.co.za", stakeholder: "Theo Burger" },
+                { name: "Plannning & Cost Engineering Services", region: "Gauteng", contactTitle: "Principal Infrastructure Utility CapEx Consultant", focus: "Mine Power Infrastructure Utility Budget Allocation Appraisals & Operational Projections", spend: "R290,000+", email: "costing@pces.co.za", stakeholder: "Alistair Vance" },
+                { name: "Powermite", region: "Gauteng", contactTitle: "Continuous Vulcanizing Extruder Plant Manager", focus: "Cable Extruder High Voltage Heating Elements Controls & Power Factors Balancing", spend: "R920,000+", email: "production@powermite.co.za", stakeholder: "Desmond Naidoo" },
+                { name: "Process Automation", region: "Gauteng", contactTitle: "Mine Instrumentation Application Lead Specialist", focus: "Conveyor Scale System Digital Processing Unit Low Voltage Power Inverters", spend: "R190,000+", email: "instruments@processautomation.co.za", stakeholder: "Wessel Marais" },
+                { name: "Process Pipe", region: "Gauteng", contactTitle: "Steel Pipe Induction Weld Production Director", focus: "High Frequency Tube Induction Welder Peak Energy Surge Balancing Controls", spend: "R1,450,000+", email: "welding@processpipe.co.za", stakeholder: "Johan van Graan" },
+                { name: "ProCrane Services", region: "Gauteng", contactTitle: "Hoist Motor Repair Works Technical Specialist", focus: "Heavy Duty Gantry Crane Electrical Testing Beds Surge Isolation Loops", spend: "R610,000+", email: "works@procrane.co.za", stakeholder: "Gert de Klerk" },
+                { name: "Proesmma", region: "Gauteng", contactTitle: "Laboratory Materials Stress Testing Coordinator", focus: "Mechanical Hydraulic Tester Electric Drives Regulators & Facility Protections", spend: "R240,000+", email: "lab@proesmma.co.za", stakeholder: "Spanish Laboratory Lead" },
+                { name: "Protea Mining Chemicals", region: "Gauteng", contactTitle: "Hazardous Blending Facility Infrastructure Controller", focus: "Ex-Rated Explosive Proof Mixing Pump Panel Circuits & Facility Lighting Arrays", spend: "R1,100,000+", email: "logistics@proteachemicals.co.za", stakeholder: "Dumisani Ndlovu" },
+                { name: "Pure Trade", region: "Gauteng", contactTitle: "Logistics Hub Storage Operations Director", focus: "Distribution Warehouse Cold Storage Air Balancing Optimization & Solar Arrays", spend: "R850,000+", email: "warehousing@puretrade.co.za", stakeholder: "Sven Jansson" }
+            ],
+            "R": [
+                { name: "Rand Mutual", region: "Gauteng", contactTitle: "Commercial Headquarters Facility Sustainability Officer", focus: "Office Complex Core Climate HVAC Inverter Trimming Software & Rooftop Solar PPAs", spend: "R750,000+", email: "sustainability@randmutual.co.za", stakeholder: "Thabo Mokoena" },
+                { name: "Release Africa", region: "Gauteng", contactTitle: "Containerized Modular Solar Leasing Executive", focus: "Mine Site Scalable Containerized Solar Array Storage Rental Deployment Contracts", spend: "R3,200,000+", email: "leasing@releaseafrica.com", stakeholder: "Scancor Energy Solutions" },
+                { name: "Rema Tip Top", region: "Gauteng", contactTitle: "Rubber Conveyor Thermal Autoclave Plant Manager", focus: "Vessel Curing Thermal Element Controls & High Voltage Cable Press Load Spikes", spend: "R1,800,000+", email: "production@rematiptop.co.za", stakeholder: "Karl Zimmer" },
+                { name: "RGM Cranes", region: "Gauteng", contactTitle: "Overhead Hoist System Electrical Drive Specialist", focus: "Industrial Crane Variable Frequency Drive Inverters Tuning for Grid Ripple Reduction", spend: "R680,000+", email: "drives@rgmcranes.co.za", stakeholder: "Robbie Mair" },
+                { name: "Rockwell Automation", region: "Gauteng", contactTitle: "Enterprise Factory Floor Energy Application Lead", focus: "Real-time Processing Line Power Analytics Software Deployments & Intelligent Substations", spend: "R1,200,000+", email: "energyapps@rockwell.com", stakeholder: "US Solutions Executive" },
+                { name: "Rotork", region: "Gauteng", contactTitle: "Pipeline Flow Valve Electric Actuator Systems Specialist", focus: "Electric Actuator Battery Bank Backup Modules Low-Voltage Remote Site Systems", spend: "R310,000+", email: "actuators@rotork.co.za", stakeholder: "UK Projects Group" }
+            ],
+            "S": [
+                { name: "Sandvik Rock Processing Solutions International (Pty) Ltd", region: "Gauteng", stakeholder: "Mats Eriksson", contactTitle: "Cone Crusher Systems Electrical Validation Lead", spend: "R2,400,000+", email: "mats.eriksson@sandvik.com", focus: "Cone Crusher Electric Motor Soft Starters & Dynamometer Test Bed Isolation Filters" },
+                { name: "Santam", region: "Gauteng", stakeholder: "Jacobus de Villiers", contactTitle: "Commercial Utility Risk Assessment Lead Engineer", spend: "R350,000+", email: "jacobus.devilliers@santam.co.za", focus: "Industrial Solar Facility Production Underwriting Risk Studies" },
+                { name: "Scania", stakeholder: "Erik Larsson", region: "Gauteng", contactTitle: "Fleet Electrification Heavy Depot Capacity Engineer", focus: "Heavy Vehicle DC Fast Charging Depot Substation Grid Sizing Calculations", spend: "R1,400,000+", email: "erik.larsson@scania.co.za" },
+                { name: "Scanmin", stakeholder: "Preston Naidoo", region: "Gauteng", contactTitle: "Elemental Ore Analyzer Instrumentation Technical Specialist", focus: "On-Line Analyzer Instrumentation Clean Voltage Regulators & Mine Lab Power", spend: "R290,000+", email: "preston@scanmin.co.za" },
+                { name: "Schneider Electric SA", stakeholder: "Caspar Herzberg", region: "Gauteng", contactTitle: "Vice President: Microgrid & Power Infrastructure Platforms", focus: "Eskom Tariff Automated Optimization Control Controls, EcoStruxure Automation Relays", spend: "R4,500,000+", email: "caspar.herzberg@se.com" },
+                { name: "Schurco Slurry", stakeholder: "Chris Schurco", region: "Gauteng", contactTitle: "Centrifugal Pump Hydraulic Loop Testing Manager", focus: "Slurry Pump Hydro Loop Multi-Kilowatt Engine Testing Bench Frequency Adjustments", spend: "R1,100,000+", email: "testing@schurcoslurry.co.za" },
+                { name: "Scope Systems", stakeholder: "David Wright", region: "Gauteng", contactTitle: "ERP Utility Ledger Core Software Lead Module Consultant", focus: "Mining Operational ERP Utilities Ledger Accounting System Cost Configurations", spend: "R240,000+", email: "solutions@scopesystems.co.za" },
+                { name: "Scribante Concrete", stakeholder: "Franco Scribante", region: "Gauteng", contactTitle: "Batching Plant Heavy Operations Mechanical Engineer", focus: "Silo Mix Drum High Inrush Motor Controls & Batch Site Utility Capacity Audits", spend: "R1,250,000+", email: "franco@scribante.co.za" },
+                { name: "Senet", stakeholder: "Neil Senior", region: "Gauteng", contactTitle: "Chief Substation Network Infrastructure Engineer", focus: "Processing Concentrator Plant Substation Grid Transformers Sizing & Remote Wheeling Lines", spend: "R6,800,000+", email: "infrastructure@senet.co.za" },
+                { name: "Servair", stakeholder: "Paul Servair", region: "Gauteng", contactTitle: "Industrial Compressed Air Infrastructure Lead Designer", focus: "Compressed Air Receiver Balanced Storage Buffers for Peak Utility Shift Shaving", spend: "R730,000+", email: "engineering@servair.co.za" },
+                { name: "SES", stakeholder: "John Sutherland", region: "Gauteng", contactTitle: "PFC Capacitor Fabrication Engineering Lead", focus: "Industrial Power Factor Correction Capacitor Banks Assembly & Load Curtailment Link Relays", spend: "R880,000+", email: "panels@ses.co.za" },
+                { name: "Shaw Almex Africa", stakeholder: "Charles Shaw", region: "Gauteng", contactTitle: "Conveyor Vulcanizing Heating System Operations Director", focus: "Field Vulcanizer High Voltage Heating Platen Segment Control Modules Management", spend: "R610,000+", email: "vulcanizers@shawalmex.co.za" },
+                { name: "Shevon Holdings", stakeholder: "Shevon Gounden", region: "Gauteng", contactTitle: "Group Multi-Tenant Property Commercial Utility Controller", focus: "Industrial Site Sub-Meter Automation Billing Databases & Rooftop Solar Injections", spend: "R1,900,000+", email: "utilities@shevon.co.za" },
+                { name: "Siemens", stakeholder: "Sabine Dall'Omo", region: "Gauteng", contactTitle: "Head of Grid Digitalization & Microgrid Platforms Architecture", focus: "Industrial Virtual Power Plant (VPP) Software Automation & High Voltage Protection Switchgear", spend: "R8,200,000+", email: "sabine.dallomo@siemens.com" },
+                { name: "Sinter Plant Services", stakeholder: "Willem van Niekerk", region: "Mpumalanga", contactTitle: "Metallurgical Sinter Line Infrastructure Operations Lead", focus: "Sintering Gas Induction Fan Extraction Variable Speed Drive Upgrades & Thermal Demand", spend: "R5,600,000+", email: "sinter@sps.co.za" },
+                { name: "Siyathembana", stakeholder: "Lucas Baloyi", region: "Gauteng", contactTitle: "Infrastructure Pump Station Grid Connection Coordinator", focus: "Bulk Water Utility High Voltage Pipeline Pump Substation Connections Planning", spend: "R1,350,000+", email: "projects@siyathembana.co.za" },
+                { name: "SMT", stakeholder: "Volvo Truck Partner", region: "Gauteng", contactTitle: "Facility Workshop Maintenance & Energy Layout Planner", focus: "Service Center Vehicle Fast Charging Grid Allocations & Workshop Backup Assets", spend: "R580,000+", email: "facilities@smt.com" },
+                { name: "Stefanutti Stocks", stakeholder: "Russell Stocks", region: "Gauteng", contactTitle: "Group Plant Heavy Mechanical Infrastructure Executive Engineer", focus: "Quarry Crushing Machinery Grid Power Connections & Fleet Mobile Generator Fuel Tracking", spend: "R4,100,000+", email: "r.stocks@stefanuttistocks.com" },
+                { name: "Sulzer", stakeholder: "Peter Sulzer", region: "Gauteng", contactTitle: "Multi-Megawatt Pump Testing Bed Engineering Director", focus: "High-Pressure Mine Dewatering Pump Remanufacturing Dynamic Testing Bench Utility Loads", spend: "R3,200,000+", email: "testing@sulzer.co.za" }
+            ],
+            "T": [
+                { name: "247 Solar", region: "Gauteng", stakeholder: "Bruce Anderson", contactTitle: "Concentrated Solar Thermal (CSP) Development Director", spend: "R7,500,000+", email: "anderson@247solar.com", focus: "Continuous Thermal Storage Block Design Engineering & Industrial Base Green PPAs" },
+                { name: "TGood", region: "Gauteng", stakeholder: "E-House Global Exec", contactTitle: "Modular Substation Prefabrication Engineering Specialist", spend: "R2,900,000+", email: "substations@tgood.co.za", focus: "Drop-In Prefabricated Mining Substation E-Houses & Gas-Insulated Switchgear Arrays" },
+                { name: "Trafigura Services South Africa", region: "Gauteng", stakeholder: "Commodities Desk Manager", contactTitle: "Strategic Energy Sourcing & Hedging Splicer Manager", spend: "R9,100,000+", email: "powerdesk@trafigura.com", focus: "Bulk Energy Trading Contracts, Heavy Smelter Electrical Price Hedging Frameworks" },
+                { name: "Traka", region: "Gauteng", stakeholder: "Assa Abloy Rep", contactTitle: "Intelligent Facility Key Hub Integration Lead", focus: "Automated Maintenance Depot Recharge Terminal Inverter System Allocations", spend: "R230,000+", email: "tech@traka.co.za" },
+                { name: "Tru-Trac Rollers", region: "Gauteng", stakeholder: "Johnny de Villiers", contactTitle: "Production Tooling Plant Maintenance Specialist", focus: "Rubber Conveyor Tracker Vulcanizing Press Heavy Duty Element Load Timings", spend: "R480,000+", email: "johnny@trutrac.co.za" },
+                { name: "Truco", region: "Gauteng", stakeholder: "Wayne de Wet", contactTitle: "Hose Extrusion Facility Infrastructure Manager", focus: "Continuous Rubber Hose Steam/Electric Curing Platen Energy Factor Leveling Matrices", spend: "R1,650,000+", email: "wayne.dewet@truco.co.za" }
+            ],
+            "U": [
+                { name: "Unitrans Africa", region: "Gauteng", stakeholder: "Logistics Ops Exec", contactTitle: "Supply Chain Fleet Electrification Infrastructure Director", spend: "R1,950,000+", email: "fleetenergy@unitrans.co.za", focus: "Distribution Transport Depot Rooftop Solar Injections & EV Truck Fast Charging Station Loads" },
+                { name: "USP&E Holdings", region: "Gauteng", stakeholder: "Will Willinhoff", contactTitle: "Heavy Thermal Plant EPC Project Design Architect", spend: "R6,500,000+", email: "will@uspeglobal.com", focus: "Heavy Fuel Oil (HFO) Thermal Generator Stations & Hybrid Mining Grid Controllers" }
+            ],
+            "V": [
+                { name: "V.I Instruments", region: "Gauteng", stakeholder: "Calibration Lab Head", contactTitle: "Laboratory Environmental System Energy Sizing Controller", focus: "Precision Diagnostic Room HVAC Power Balancing Controls & Stabilized Utility Lines", spend: "R210,000+", email: "lab@viinstruments.co.za" },
+                { name: "Valmet", region: "Gauteng", stakeholder: "Finnish Automation Rep", contactTitle: "Pulp & Paper Mill Distributed System Energy Consultant", focus: "Pulp Processing Plant Recovery Boiler Loop Automation & Factory Floor DCS Interlocks", spend: "R3,800,000+", email: "automation@valmet.com" },
+                { name: "Varispeed", region: "Gauteng", stakeholder: "Marthinus van Dyke", contactTitle: "Low Harmonic Drive Systems Technical Sales Head", focus: "Mine Ventilation Fan Large Inverter Installations & Power Factor Target Maintenance", spend: "R1,150,000+", email: "drives@varispeed.co.za" },
+                { name: "Verder Pumps SA", region: "Gauteng", stakeholder: "Pump Div Lead", contactTitle: "Slurry Hose Dosing Pump Assemblies Efficiency Specialist", focus: "Thick Slurry Handling Motor Efficiency Optimization Upgrades & Control Panels", spend: "R760,000+", email: "pumps@verder.co.za" },
+                { name: "Virtus Ventures (Allm Africa)", region: "Gauteng", stakeholder: "Investment Director", contactTitle: "Distributed Microgrid Project Asset Structured Modeler", focus: "Industrial Capital Expansion Energy Procurement Modeling & Clean Energy PPAs Structuring", spend: "R400,000+", email: "projects@virtusventures.co.za" },
+                { name: "Vital Engineering", region: "Gauteng", stakeholder: "Dodds Pringle", contactTitle: "Steel Mesh Resistance Welder Production Facility Engineer", focus: "Heavy Grating Electro-Resistance Welder Shock Demand Current Suppression Controls", spend: "R1,300,000+", email: "production@vitalengineering.co.za" },
+                { name: "Voith", region: "Gauteng", stakeholder: "German Coupling Head", contactTitle: "Fluid Coupling High Tonnage Test Bed Engineering Lead", focus: "Multi-Megawatt Conveyor Coupling Performance Dynamometer Testing Inverter Loops", spend: "R1,550,000+", email: "testing@voith.co.za" }
+            ],
+            "W": [
+                { name: "Wayoe Engineering and Construction Limited (WEC)", region: "Gauteng", stakeholder: "Workshop Director", contactTitle: "Structural Steel Fabrication Yard Infrastructure Manager", focus: "High Tonnage Plasma Metal Arc Cutter Electrical Demand Leveling & Workshop Inverters", spend: "R920,000+", email: "workshop@wayoe.co.za" },
+                { name: "WBHO", region: "Gauteng", stakeholder: "Mike Wylie", contactTitle: "Heavy Heavy Construction Civil Site Utilities Procurement Head", focus: "Civil Siting Temporary Construction Substation Grid Fees & Infrastructure Capital Projections", spend: "R2,700,000+", email: "mike.wylie@wbho.co.za" },
+                { name: "Weir Minerals", region: "Gauteng", stakeholder: "Foundry Director", contactTitle: "Isando Induction Melting Foundry Infrastructure Lead", spend: "R4,600,000+", email: "foundry.sa@weirminerals.com" },
+                { name: "WEM Electric Motors & Drives (Indusquip (Pty) Ltd)", region: "Gauteng", stakeholder: "Luis Marques", contactTitle: "Medium Voltage Industrial Motor Validation Engineering Chief", focus: "Heavy Duty Pump Motors Remanufacturing Full Load Testing Bench Grid Isolation Filters", spend: "R1,200,000+", email: "testing@indusquip.co.za" }
+            ],
+            "X": [
+                { name: "Xceed Infrustructure", region: "Gauteng", stakeholder: "Utilities Engineer", contactTitle: "Industrial Estate Utility Reticulation Layout Project Lead", focus: "New Facility Grid Feeder Cabling Reticulations Layout Capacity Allocation Planning", spend: "R310,000+", email: "utilities@xceedinfra.co.za" }
+            ]
+        };
+
+        const regionCoordinates = {
+            "Gauteng": [-26.1633, 28.2458],
+            "Western Cape": [-33.9249, 18.4241],
+            "KwaZulu-Natal": [-29.8587, 31.0218],
+            "Mpumalanga": [-25.8728, 29.2315],
+            "North West": [-25.6544, 27.2407]
+        };
+
+        let map, markerGroup;
+        let isMapViewActive = false;
+
+        const grid = document.getElementById('directoryGrid');
+        const amiqLetterBar = document.getElementById('amiqLetterBar');
+        const searchInput = document.getElementById('directorySearch');
+        const regionFilter = document.getElementById('regionFilter');
+        const noResults = document.getElementById('noResults');
+        const amiqLetterBarWrapper = document.getElementById('amiqLetterBarWrapper');
+
+        function initDirectory() {
+            renderAMIQNavigation();
+            renderDirectory(companyData);
+            
+            searchInput.addEventListener('input', applyFilters);
+            regionFilter.addEventListener('change', (e) => {
+                applyFilters();
+                if (isMapViewActive) centerMapOnSelectedRegion(e.target.value);
+            });
+        }
+
+        function toggleView() {
+            const listLayer = document.getElementById('directoryListView');
+            const mapLayer = document.getElementById('mapDashboardView');
+            const btnText = document.getElementById('toggleText');
+            const btnIcon = document.getElementById('toggleIcon');
+
+            isMapViewActive = !isMapViewActive;
+
+            if (isMapViewActive) {
+                listLayer.classList.add('hidden');
+                mapLayer.classList.remove('hidden');
+                // Hides the horizontal text index system bar when on map page
+                amiqLetterBarWrapper.classList.add('hidden');
+                setTimeout(() => mapLayer.classList.remove('opacity-0'), 50);
+                
+                btnText.innerText = "Show Ledger Directory";
+                btnIcon.className = "fa-solid fa-table-list text-emerald-300 text-base";
+                
+                if (!map) {
+                    initSatelliteMap();
+                }
+                applyFilters();
+            } else {
+                mapLayer.classList.add('opacity-0');
+                // Restores horizontal index tracker system visibility when listing companies
+                amiqLetterBarWrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    mapLayer.classList.add('hidden');
+                    listLayer.classList.remove('hidden');
+                }, 250);
+                
+                btnText.innerText = "Show Satellite Asset Map";
+                btnIcon.className = "fa-solid fa-earth-africa text-emerald-300 text-base";
+            }
+        }
+
+        function initSatelliteMap() {
+            map = L.map('earthMap').setView([-28.4793, 24.6727], 5);
+            
+            L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: '&copy; Google Satellite Architecture Engine'
+            }).addTo(map);
+
+            markerGroup = L.layerGroup().addTo(map);
+        }
+
+        function centerMapOnSelectedRegion(region) {
+            if (region !== 'all' && regionCoordinates[region]) {
+                map.setView(regionCoordinates[region], 9, { animate: true });
+            } else {
+                map.setView([-28.4793, 24.6727], 5, { animate: true });
+            }
+        }
+
+        function renderAMIQNavigation() {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            const elementFragments = [];
+
+            letters.forEach(letter => {
+                const hasData = companyData[letter] && companyData[letter].length > 0;
+                if (hasData) {
+                    elementFragments.push(`<a href="#section-${letter}" class="text-[#0f4c3a] hover:text-[#0b382b] hover:underline px-1.5 transition-colors">${letter}</a>`);
+                } else {
+                    elementFragments.push(`<span class="text-slate-300 font-normal px-1.5 cursor-not-allowed select-none">${letter}</span>`);
+                }
+            });
+
+            amiqLetterBar.innerHTML = elementFragments.join('<span class="text-slate-300 font-light font-sans mx-0.5">|</span>');
+        }
+
+        function renderDirectory(data) {
+            grid.innerHTML = '';
+            let sectionsCreated = 0;
+
+            for (const [letter, companies] of Object.entries(data)) {
+                if (!companies || companies.length === 0) continue;
+                sectionsCreated++;
+
+                const section = document.createElement('section');
+                section.id = `section-${letter}`;
+                section.className = "scroll-mt-36";
+
+                section.innerHTML = `
+                    <div class="flex items-center gap-4 mb-6 border-b border-slate-200 pb-2">
+                        <h2 class="text-xl font-extrabold tracking-wider text-slate-900 uppercase font-serif-aeeg">${letter}</h2>
+                        <span class="text-[11px] font-bold bg-[#0f4c3a] text-white px-3 py-0.5 rounded-full font-sans">
+                            ${companies.length} Mapped Assets
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${companies.map(company => `
+                            <div class="group bg-white p-6 rounded-lg border border-slate-200/60 shadow-xs hover:shadow-md hover:border-[#0f4c3a] transition-all duration-200 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2 font-sans">
+                                        <span class="text-[10px] uppercase tracking-widest font-extrabold px-2.5 py-0.5 rounded-sm bg-slate-50 text-slate-600 border border-slate-200">
+                                            <i class="fa-solid fa-location-dot text-[9px] mr-1 text-slate-400"></i>${company.region}
+                                        </span>
+                                        <span class="text-[#0f4c3a] text-[11px] font-black tracking-wider uppercase flex items-center gap-1 bg-[#0f4c3a]/5 px-2 py-0.5 rounded border border-[#0f4c3a]/10">
+                                            <i class="fa-solid fa-wallet text-[10px]"></i> Budget: ${company.spend}
+                                        </span>
+                                    </div>
+                                    
+                                    <h3 class="font-bold text-slate-900 text-lg tracking-tight mb-4 min-h-[2.5rem] flex items-center font-serif-aeeg">
+                                        ${company.name}
+                                    </h3>
+                                    
+                                    <div class="space-y-4 text-xs font-sans">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-7 h-7 rounded-sm bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 border border-slate-200">
+                                                <i class="fa-solid fa-user-check text-[11px]"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-slate-400 font-extrabold text-[9px] uppercase tracking-wider">Primary Stakeholder</div>
+                                                <div class="text-slate-900 font-bold text-sm tracking-tight">${company.stakeholder}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-7 h-7 rounded-sm bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 border border-slate-200">
+                                                <i class="fa-solid fa-briefcase text-[11px]"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-slate-400 font-extrabold text-[9px] uppercase tracking-wider">Title / Corporate Designation</div>
+                                                <div class="text-slate-800 font-semibold leading-tight">${company.contactTitle}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-7 h-7 rounded-sm bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 border border-slate-200">
+                                                <i class="fa-solid fa-envelope-open-text text-[11px]"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-slate-400 font-extrabold text-[9px] uppercase tracking-wider">Email Address</div>
+                                                <a href="mailto:${company.email}?subject=AEEG%20-%20Utility%20Infrastructure%20Procurement%20Network%20Inquiry" class="text-[#0f4c3a] font-bold hover:text-[#0b382b] hover:underline block break-all tracking-tight mt-0.5">${company.email}</a>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-start gap-3 pt-1">
+                                            <div class="w-7 h-7 rounded-sm bg-[#0f4c3a]/5 flex items-center justify-center text-[#0f4c3a] shrink-0 border border-[#0f4c3a]/10">
+                                                <i class="fa-solid fa-sliders text-[11px]"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-[#0f4c3a] font-extrabold text-[9px] uppercase tracking-wider">Infrastructure Mandate Focus</div>
+                                                <div class="text-slate-600 font-normal leading-relaxed mt-0.5">${company.focus}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-sans">
+                                    <span class="text-slate-400 font-medium">Node Verified</span>
+                                    <a href="mailto:${company.email}?subject=AEEG%20-%20Utility%20Infrastructure%20Procurement%20Network%20Inquiry" 
+                                       class="text-slate-900 font-bold hover:text-[#0f4c3a] transition-colors flex items-center gap-1 cursor-pointer tracking-wider text-[11px] uppercase">
+                                        Initiate Link <i class="fa-solid fa-circle-arrow-right text-[11px] text-[#0f4c3a] ml-0.5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                grid.appendChild(section);
+            }
+
+            if (sectionsCreated === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+        }
+
+        function updateMapMarkers(filteredData) {
+            if (!markerGroup) return;
+            markerGroup.clearLayers();
+
+            for (const [letter, companies] of Object.entries(filteredData)) {
+                companies.forEach(company => {
+                    const baseCoords = regionCoordinates[company.region];
+                    if (!baseCoords) return;
+
+                    const scatterOffsetLat = (Math.random() - 0.5) * 0.15;
+                    const scatterOffsetLng = (Math.random() - 0.5) * 0.15;
+                    const deploymentCoords = [baseCoords[0] + scatterOffsetLat, baseCoords[1] + scatterOffsetLng];
+
+                    const diagnosticBriefHTML = `
+                        <div class="font-sans text-slate-100 p-2 max-w-[250px] space-y-2.5">
+                            <div class="font-serif-aeeg text-sm tracking-tight text-white border-b border-emerald-800/40 pb-1.5 font-bold">${company.name}</div>
+                            <div class="flex justify-between items-center text-[10px]">
+                                <span class="uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-[#0f4c3a]/50 text-emerald-200 border border-emerald-800/30">${company.region}</span>
+                                <span class="text-white font-bold bg-white/10 px-1.5 py-0.5 rounded border border-white/20">${company.spend} /mo</span>
+                            </div>
+                            <div class="space-y-1 pt-1 text-xs">
+                                <div class="font-bold text-white"><span class="text-emerald-300/60 font-normal">Stakeholder:</span> ${company.stakeholder}</div>
+                                <div class="text-slate-200 font-medium text-[11px] leading-tight">${company.contactTitle}</div>
+                            </div>
+                            <div class="text-[10px] text-emerald-200/60 leading-normal border-t border-emerald-800/40 pt-1.5 italic">${company.focus}</div>
+                            <a href="mailto:${company.email}?subject=AEEG%20-%20Utility%20Infrastructure%20Procurement%20Network%20Inquiry" class="text-xs text-white font-bold block hover:underline pt-1 text-center bg-[#0f4c3a] rounded py-1 border border-emerald-700/60"><i class="fa-solid fa-paper-plane mr-1"></i> Send Direct Email</a>
+                        </div>
+                    `;
+
+                    L.marker(deploymentCoords)
+                        .bindPopup(diagnosticBriefHTML)
+                        .addTo(markerGroup);
+                });
+            }
+        }
+
+        function applyFilters() {
+            const textQuery = searchInput.value.toLowerCase().trim();
+            const regionQuery = regionFilter.value;
+            const filteredData = {};
+            
+            for (const [letter, companies] of Object.entries(companyData)) {
+                const matches = companies.filter(company => {
+                    const matchesText = !textQuery || 
+                                       company.name.toLowerCase().includes(textQuery) ||
+                                       company.stakeholder.toLowerCase().includes(textQuery) ||
+                                       company.contactTitle.toLowerCase().includes(textQuery) ||
+                                       company.email.toLowerCase().includes(textQuery) ||
+                                       company.spend.toLowerCase().includes(textQuery) ||
+                                       company.focus.toLowerCase().includes(textQuery);
+                                       
+                    const matchesRegion = (regionQuery === 'all') || (company.region === regionQuery);
+                    
+                    return matchesText && matchesRegion;
+                });
+                
+                if (matches.length > 0) {
+                    filteredData[letter] = matches;
+                }
+            }
+            
+            renderDirectory(filteredData);
+            updateMapMarkers(filteredData);
+        }
+
+        document.addEventListener('DOMContentLoaded', initDirectory);
+    </script>
+</body>
+</html>
